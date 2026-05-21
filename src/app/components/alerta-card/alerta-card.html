@@ -1,0 +1,48 @@
+<div class="card" [class]="alerta.criticidade" [class.expandido]="expandido" (click)="expandido = !expandido">
+
+  <div class="card-main">
+    <!-- Ícone + criticidade -->
+    <div class="lado-esquerdo">
+      <span class="icone" [class]="alerta.criticidade">{{ icone }} </span>
+      <span class="badge" [class]="alerta.criticidade">{{ alerta.criticidade }}</span>
+    </div>
+
+    <!-- Descrição -->
+    <div class="conteudo">
+      <span class="tipo">{{ tipoLabel }}</span>
+      <p class="descricao">{{ alerta.descricao }}</p>
+    </div>
+
+    <!-- Hora -->
+    <div class="hora">
+      <span>{{ horaFormatada }}</span>
+    </div>
+  </div>
+
+  <!-- Detalhes expandidos -->
+  <div class="detalhes" *ngIf="expandido">
+    <div class="detalhe-grid">
+      <div class="detalhe-item" *ngIf="alerta.host">
+        <span class="detalhe-label">host: </span>
+        <span class="detalhe-valor">{{ alerta.host }}</span>
+      </div>
+      <div class="detalhe-item" *ngIf="alerta.porta">
+        <span class="detalhe-label">porta: </span>
+        <span class="detalhe-valor">{{ alerta.porta }}</span>
+      </div>
+      <div class="detalhe-item" *ngIf="alerta.servico">
+        <span class="detalhe-label">serviço: </span>
+        <span class="detalhe-valor">{{ alerta.servico }}</span>
+      </div>
+      <div class="detalhe-item">
+        <span class="detalhe-label">data: </span>
+        <span class="detalhe-valor">{{ dataFormatada }}</span>
+      </div>
+      <div class="detalhe-item">
+        <span class="detalhe-label">id: </span>
+        <span class="detalhe-valor id">{{ alerta.id }}</span>
+      </div>
+    </div>
+  </div>
+
+</div>

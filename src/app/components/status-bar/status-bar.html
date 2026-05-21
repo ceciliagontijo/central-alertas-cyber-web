@@ -1,0 +1,19 @@
+<div class="status-bar">
+
+  <!-- Indicador de novo alerta -->
+  <div class="novo-alerta" [class.ativo]="novoAlerta">
+    ◉ novo alerta
+  </div>
+
+  <!-- Última atualização -->
+  <div class="info">
+    <span class="label">última varredura</span>
+  </div>
+
+  <!-- Status WebSocket -->
+  <div class="ws-status" [class.conectado]="conectado" [class.desconectado]="!conectado">
+    <span class="dot"></span>
+    <span>{{ conectado ? 'conectado' : 'desconectado' }}</span>
+  </div>
+
+</div>

@@ -1,0 +1,72 @@
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.75rem;
+}
+
+/* Novo alerta */
+.novo-alerta {
+  color: var(--critica);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.novo-alerta.ativo {
+  opacity: 1;
+  animation: piscar 0.4s ease-in-out 3;
+}
+
+@keyframes piscar {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+/* Última atualização */
+.info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.valor {
+  color: var(--text);
+}
+
+/* Status WS */
+.ws-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.ws-status.conectado    { color: var(--baixa); border-color: #3fb95044; }
+.ws-status.conectado .dot { background: var(--baixa); animation: pulsar 2s infinite; }
+
+.ws-status.desconectado { color: var(--critica); border-color: #f8514944; }
+.ws-status.desconectado .dot { background: var(--critica); }
+
+@keyframes pulsar {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}

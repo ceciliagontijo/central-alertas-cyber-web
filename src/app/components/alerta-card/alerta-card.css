@@ -1,0 +1,120 @@
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  overflow: hidden;
+}
+
+.card:hover            { background: var(--bg-hover); }
+.card.critica          { border-left-color: var(--critica); }
+.card.alta             { border-left-color: var(--alta); }
+.card.media            { border-left-color: var(--media); }
+.card.baixa            { border-left-color: var(--baixa); }
+
+.card-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+/* Lado esquerdo */
+.lado-esquerdo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 60px;
+}
+
+.icone {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.icone.critica { color: var(--critica); }
+.icone.alta    { color: var(--alta); }
+.icone.media   { color: var(--media); }
+.icone.baixa   { color: var(--baixa); }
+
+.badge {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+.badge.critica { background: #f8514922; color: var(--critica); }
+.badge.alta    { background: #d2992222; color: var(--alta); }
+.badge.media   { background: #58a6ff22; color: var(--media); }
+.badge.baixa   { background: #3fb95022; color: var(--baixa); }
+
+/* Conteúdo */
+.conteudo {
+  flex: 1;
+  min-width: 0;
+}
+
+.tipo {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.descricao {
+  font-size: 0.88rem;
+  color: var(--text);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hora */
+.hora {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Detalhes */
+.detalhes {
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  background: #0d111799;
+}
+
+.detalhe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.detalhe-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detalhe-label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detalhe-valor {
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.detalhe-valor.id {
+  font-size: 0.65rem;
+  color: var(--muted);
+  word-break: break-all;
+}

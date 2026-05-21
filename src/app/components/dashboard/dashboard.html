@@ -1,0 +1,87 @@
+<div class="layout">
+
+  <!-- Cabeçalho -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-bracket">[</span>
+        CENTRAL DE ALERTAS
+        <span class="logo-bracket">]</span>
+      </div>
+      <span class="subtitle">Nmap Network Monitor</span>
+    </div>
+    <app-status-bar
+      [conectado]="conectado"
+      [ultimaAtualizacao]="ultimaAtualizacao"
+      [novoAlerta]="novoAlerta">
+    </app-status-bar>
+  </header>
+
+  <!-- Cards de resumo -->
+  <section class="sumario">
+    <div class="card-metrica total">
+      <span class="metrica-label">total</span>
+      <span class="metrica-valor">{{ total }}</span>
+    </div>
+    <div class="card-metrica critica">
+      <span class="metrica-label">críticos</span>
+      <span class="metrica-valor">{{ criticas }}</span>
+    </div>
+    <div class="card-metrica alta">
+      <span class="metrica-label">altos</span>
+      <span class="metrica-valor">{{ altas }}</span>
+    </div>
+    <div class="card-metrica media">
+      <span class="metrica-label">médios</span>
+      <span class="metrica-valor">{{ medias }}</span>
+    </div>
+    <div class="card-metrica baixa">
+      <span class="metrica-label">baixos</span>
+      <span class="metrica-valor">{{ baixas }}</span>
+    </div>
+  </section>
+
+  <!-- Filtros -->
+  <section class="filtros">
+    <div class="filtro-grupo">
+      <label>criticidade</label>
+      <select [(ngModel)]="filtroCriticidade">
+        <option value="">todas</option>
+        <option value="critica">crítica</option>
+        <option value="alta">alta</option>
+        <option value="media">média</option>
+        <option value="baixa">baixa</option>
+      </select>
+    </div>
+
+    <div class="filtro-grupo">
+      <label>tipo</label>
+      <select [(ngModel)]="filtroTipo">
+        <option value="">todos</option>
+        <option *ngFor="let tipo of tiposDisponiveis" [value]="tipo">{{ tipo }}</option>
+      </select>
+    </div>
+
+    <button class="btn-limpar" (click)="limparFiltros()">limpar filtros</button>
+  </section>
+
+  <!-- Contagem filtrada -->
+  <div class="contagem">
+    {{ alertasFiltrados.length }} alerta{{ alertasFiltrados.length !== 1 ? 's' : '' }} encontrado{{ alertasFiltrados.length !== 1 ? 's' : '' }}
+  </div>
+
+  <!-- Lista de alertas -->
+  <section class="lista-alertas">
+    <div *ngIf="alertasFiltrados.length === 0" class="vazio">
+      <span class="vazio-icon">◌</span>
+      <p>Nenhum alerta encontrado.</p>
+      <p class="vazio-sub">Os alertas aparecem aqui assim que o backend realizar uma varredura.</p>
+    </div>
+
+    <app-alerta-card
+      *ngFor="let alerta of alertasFiltrados; trackBy: trackById"
+      [alerta]="alerta">
+    </app-alerta-card>
+  </section>
+
+</div>
