@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { AlertaService } from '../../services/alerta.service';
 import { Alerta } from '../../models/alerta.model';
 import { AlertaCardComponent } from '../alerta-card/alerta-card';
 import { StatusBarComponent } from '../status-bar/status-bar';
@@ -12,13 +14,15 @@ import { StatusBarComponent } from '../status-bar/status-bar';
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   alertas: Alerta[] = [];
   filtroTipo = '';
   filtroCriticidade = '';
   conectado = false;
   ultimaAtualizacao: Date | null = null;
   novoAlerta = false;
+
+  private sub!: Subscription;
 
   get total()    { return this.alertas.length; }
   get criticas() { return this.alertas.filter(a => a.criticidade === 'critica').length; }
@@ -37,62 +41,30 @@ export class DashboardComponent implements OnInit {
     return [...new Set(this.alertas.map(a => a.tipo))];
   }
 
-  ngOnInit(): void {
-    this.ultimaAtualizacao = new Date();
+  constructor(private alertaService: AlertaService) {}
 
-    // Dados falsos para testar a interface
-    this.alertas = [
-      {
-        id: '1',
-        tipo: 'novo_host',
-        criticidade: 'alta',
-        host: '192.168.1.45',
-        porta: null,
-        servico: null,
-        descricao: 'Novo host detectado: 192.168.1.45',
-        timestamp: new Date().toISOString()
+  ngOnInit(): void {
+    this.carregarHistorico();
+
+    this.sub = this.alertaService.alerta$.subscribe(alerta => {
+      this.alertas.unshift(alerta);
+      this.ultimaAtualizacao = new Date();
+      this.piscarNotificacao();
+    });
+
+    setInterval(() => {
+      this.conectado = this.alertaService.wsConectado;
+    }, 2000);
+  }
+
+  carregarHistorico(): void {
+    this.alertaService.listar().subscribe({
+      next: (dados) => {
+        this.alertas = dados;
+        if (dados.length) this.ultimaAtualizacao = new Date();
       },
-      {
-        id: '2',
-        tipo: 'porta_aberta',
-        criticidade: 'critica',
-        host: '192.168.1.10',
-        porta: 22,
-        servico: 'ssh',
-        descricao: 'Nova porta aberta em 192.168.1.10: 22 (ssh) ⚠️ PORTA SENSÍVEL',
-        timestamp: new Date(Date.now() - 60000).toISOString()
-      },
-      {
-        id: '3',
-        tipo: 'porta_aberta',
-        criticidade: 'media',
-        host: '192.168.1.10',
-        porta: 8080,
-        servico: 'http-proxy',
-        descricao: 'Nova porta aberta em 192.168.1.10: 8080 (http-proxy)',
-        timestamp: new Date(Date.now() - 120000).toISOString()
-      },
-      {
-        id: '4',
-        tipo: 'host_perdido',
-        criticidade: 'alta',
-        host: '192.168.1.30',
-        porta: null,
-        servico: null,
-        descricao: 'Host parou de responder: 192.168.1.30',
-        timestamp: new Date(Date.now() - 180000).toISOString()
-      },
-      {
-        id: '5',
-        tipo: 'porta_fechada',
-        criticidade: 'baixa',
-        host: '192.168.1.10',
-        porta: 3306,
-        servico: 'mysql',
-        descricao: 'Porta fechada em 192.168.1.10: 3306 (mysql)',
-        timestamp: new Date(Date.now() - 240000).toISOString()
-      }
-    ];
+      error: () => {}
+    });
   }
 
   limparFiltros(): void {
@@ -100,5 +72,14 @@ export class DashboardComponent implements OnInit {
     this.filtroCriticidade = '';
   }
 
+  private piscarNotificacao(): void {
+    this.novoAlerta = true;
+    setTimeout(() => this.novoAlerta = false, 1500);
+  }
+
   trackById(_: number, a: Alerta): string { return a.id; }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
 }
