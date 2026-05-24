@@ -13,7 +13,7 @@ export class StatusBarComponent {
   @Input() ultimaAtualizacao: Date | null = null;
   @Input() novoAlerta = false;
 
-  get horaAtualização(): string {
+  get horaAtualizacao(): string {
     if (!this.ultimaAtualizacao) return '—';
     return this.ultimaAtualizacao.toLocaleTimeString('pt-BR');
   }
