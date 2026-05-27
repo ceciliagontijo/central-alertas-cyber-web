@@ -32,6 +32,10 @@ export class AlertaService {
   private conectarWs(): void {
     this.ws = new WebSocket(WS);
 
+    this.ws.onopen = () => {
+      console.log('WebSocket conectado');
+    };
+
     this.ws.onmessage = (event) => {
       try {
         const alerta: Alerta = JSON.parse(event.data);
@@ -40,8 +44,16 @@ export class AlertaService {
     };
 
     this.ws.onclose = () => {
+      console.log('WebSocket desconectado, reconectando...');
       setTimeout(() => this.conectarWs(), 5000);
     };
+
+    // Envia ping a cada 25s para manter a conexão viva
+    setInterval(() => {
+      if (this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send('ping');
+      }
+    }, 25000);
   }
 
   get wsConectado(): boolean {

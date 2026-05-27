@@ -52,11 +52,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.piscarNotificacao();
     });
 
+    this.conectado = this.alertaService.wsConectado;
     setInterval(() => {
       this.conectado = this.alertaService.wsConectado;
-    }, 2000);
+    }, 1000);
   }
-
   carregarHistorico(): void {
     this.alertaService.listar().subscribe({
       next: (dados) => {

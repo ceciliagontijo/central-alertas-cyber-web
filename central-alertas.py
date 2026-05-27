@@ -7,8 +7,8 @@ import asyncio, json
 from contextlib import asynccontextmanager
 
 
-ALVO           = "localhost"
-INTERVALO_SCAN = 60
+ALVO           = "172.16.230.0/19"
+INTERVALO_SCAN = 120
 PORTAS_SENSIVEIS = {22, 23, 3389, 445, 135, 139, 5900, 1433, 3306, 5432}
 
 snapshot_anterior = {}
@@ -18,7 +18,7 @@ clientes_ws       = []
 
 def fazer_scan():
     scanner = nmap.PortScanner()
-    scanner.scan(hosts=ALVO, arguments="-sV")
+    scanner.scan(hosts=ALVO, arguments="-sn")
     snapshot = {}
 
     for host in scanner.all_hosts():
@@ -52,7 +52,7 @@ def gerar_alertas(anterior, atual):
 
     for host in atual:
         if host not in anterior:
-            alertas.append(alerta("novo_host", "alta", host,
+            alertas.append(alerta("novo_host", "media", host,
                 f"Novo host detectado: {host}"))
 
 
@@ -150,6 +150,11 @@ async def ws_endpoint(ws: WebSocket):
     await ws.accept()
     clientes_ws.append(ws)
     try:
-        while True: await ws.receive_text()
+        while True:
+            try:
+                await asyncio.wait_for(ws.receive_text(), timeout=30)
+            except asyncio.TimeoutError:
+                pass
     except WebSocketDisconnect:
-        clientes_ws.remove(ws)
+        if ws in clientes_ws:
+            clientes_ws.remove(ws)
