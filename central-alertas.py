@@ -7,8 +7,8 @@ import asyncio, json
 from contextlib import asynccontextmanager
 
 
-ALVO           = "172.16.230.0/19"
-INTERVALO_SCAN = 120
+ALVO           = "localhost"
+INTERVALO_SCAN = 60
 PORTAS_SENSIVEIS = {22, 23, 3389, 445, 135, 139, 5900, 1433, 3306, 5432}
 
 snapshot_anterior = {}
