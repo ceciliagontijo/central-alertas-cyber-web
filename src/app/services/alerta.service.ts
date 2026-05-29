@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core'; // 1. Adicionei o NgZone aqui
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { Alerta } from '../models/alerta.model';
@@ -12,7 +12,11 @@ export class AlertaService {
   private alertaSubject = new Subject<Alerta>();
   alerta$ = this.alertaSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+
+  constructor(
+    private http: HttpClient,
+    private zone: NgZone
+  ) {
     this.conectarWs();
   }
 
@@ -39,8 +43,14 @@ export class AlertaService {
     this.ws.onmessage = (event) => {
       try {
         const alerta: Alerta = JSON.parse(event.data);
-        this.alertaSubject.next(alerta);
-      } catch { }
+
+        this.zone.run(() => {
+          this.alertaSubject.next(alerta);
+        });
+
+      } catch (err) {
+        console.error("Erro ao processar mensagem do WS:", err);
+      }
     };
 
     this.ws.onclose = () => {
@@ -48,7 +58,6 @@ export class AlertaService {
       setTimeout(() => this.conectarWs(), 5000);
     };
 
-    // Envia ping a cada 25s para manter a conexão viva
     setInterval(() => {
       if (this.ws.readyState === WebSocket.OPEN) {
         this.ws.send('ping');

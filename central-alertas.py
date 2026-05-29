@@ -1,5 +1,6 @@
 import nmap
 import uuid
+import threading
 from datetime import datetime
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,7 +8,7 @@ import asyncio, json
 from contextlib import asynccontextmanager
 
 
-ALVO           = "localhost"
+ALVO           = "192.168.15.0/24"
 INTERVALO_SCAN = 60
 PORTAS_SENSIVEIS = {22, 23, 3389, 445, 135, 139, 5900, 1433, 3306, 5432}
 
@@ -18,8 +19,19 @@ clientes_ws       = []
 
 def fazer_scan():
     scanner = nmap.PortScanner()
+
     scanner.scan(hosts=ALVO, arguments="-sn")
+    hosts_vivos = scanner.all_hosts()
+
     snapshot = {}
+
+    if not hosts_vivos:
+        return snapshot
+
+    alvos_ativos = " ".join(hosts_vivos)
+    portas_str = ",".join(map(str, PORTAS_SENSIVEIS))
+
+    scanner.scan(hosts=alvos_ativos, arguments=f"-p {portas_str}")
 
     for host in scanner.all_hosts():
         snapshot[host] = {"estado": scanner[host].state(), "portas": {}}
@@ -30,6 +42,7 @@ def fazer_scan():
                     "estado":   servico["state"],
                     "servico":  servico["name"],
                 }
+
     return snapshot
 
 
@@ -98,34 +111,43 @@ def gerar_alertas(anterior, atual):
 
 async def broadcast(alerta):
     msg = json.dumps(alerta)
-    for ws in clientes_ws.copy():
+
+    for ws in list(clientes_ws):
         try:
             await ws.send_text(msg)
-        except:
-            clientes_ws.remove(ws)
+        except Exception as e:
+            if ws in clientes_ws:
+                clientes_ws.remove(ws)
 
 
-async def loop_scan():
+def loop_scan():
     global snapshot_anterior, historico_alertas
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
     while True:
         try:
             print("🔍 Rodando scan...")
-            atual = await asyncio.to_thread(fazer_scan)
+            atual = fazer_scan()
             if snapshot_anterior:
                 novos = gerar_alertas(snapshot_anterior, atual)
                 for a in novos:
                     historico_alertas.append(a)
-                    await broadcast(a)
+
+                    loop.run_until_complete(broadcast(a))
                 print(f"✅ {len(novos)} alerta(s) gerado(s).")
             snapshot_anterior = atual
         except Exception as e:
             print(f"❌ Erro: {e}")
-        await asyncio.sleep(INTERVALO_SCAN)
+
+        import time
+        time.sleep(INTERVALO_SCAN)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    asyncio.create_task(loop_scan())
+    threading.Thread(target=loop_scan, daemon=True).start()
     yield
 
 
@@ -151,10 +173,10 @@ async def ws_endpoint(ws: WebSocket):
     clientes_ws.append(ws)
     try:
         while True:
-            try:
-                await asyncio.wait_for(ws.receive_text(), timeout=30)
-            except asyncio.TimeoutError:
-                pass
+
+            dados = await ws.receive_text()
+            if dados == "ping":
+                await ws.send_text("pong")
     except WebSocketDisconnect:
         if ws in clientes_ws:
             clientes_ws.remove(ws)

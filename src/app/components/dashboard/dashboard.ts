@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core'; // Adicionado ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -41,27 +41,37 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return [...new Set(this.alertas.map(a => a.tipo))];
   }
 
-  constructor(private alertaService: AlertaService) {}
+  constructor(
+    private alertaService: AlertaService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.carregarHistorico();
 
     this.sub = this.alertaService.alerta$.subscribe(alerta => {
-      this.alertas.unshift(alerta);
+
+      this.alertas = [alerta, ...this.alertas];
       this.ultimaAtualizacao = new Date();
       this.piscarNotificacao();
+
+
+      this.cdr.detectChanges();
     });
 
     this.conectado = this.alertaService.wsConectado;
     setInterval(() => {
       this.conectado = this.alertaService.wsConectado;
+      this.cdr.detectChanges();
     }, 1000);
   }
+
   carregarHistorico(): void {
     this.alertaService.listar().subscribe({
       next: (dados) => {
         this.alertas = dados;
         if (dados.length) this.ultimaAtualizacao = new Date();
+        this.cdr.detectChanges();
       },
       error: () => {}
     });
@@ -74,7 +84,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private piscarNotificacao(): void {
     this.novoAlerta = true;
-    setTimeout(() => this.novoAlerta = false, 1500);
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.novoAlerta = false;
+      this.cdr.detectChanges();
+    }, 1500);
   }
 
   trackById(_: number, a: Alerta): string { return a.id; }
